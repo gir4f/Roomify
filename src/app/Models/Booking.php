@@ -2,19 +2,49 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Booking extends Model
 {
-     protected $fillable = [
-        'user_id','room_id','tanggal','jam_mulai','jam_selesai','status'
+    use HasFactory;
+
+    /**
+     * Atribut yang 'boleh' diisi secara massal (mass assignable).
+     * Pastikan ini sesuai dengan migrasi 'bookings' Anda.
+     */
+    protected $fillable = [
+        'user_id',    // (Akan kita isi otomatis)
+        'room_id',
+        'title',      // (Nama kegiatan)
+        'start_time',
+        'end_time',
+        'status',     // (default 'pending' dari database)
     ];
 
-    public function room() {
-        return $this->belongsTo(Room::class);
+    /**
+     * Tipe data cast untuk 'start_time' dan 'end_time'
+     * agar menjadi objek Carbon (memudahkan format)
+     */
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
+
+    /**
+     * Relasi: Booking ini milik siapa (User)
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function user() {
-        return $this->belongsTo(User::class);
+    /**
+     * Relasi: Booking ini untuk ruangan mana (Room)
+     */
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
     }
 }

@@ -19,6 +19,8 @@ class Room extends Model
         'name',
         'capacity',
         'facilities',
+        'gedung',   // <-- TAMBAHKAN INI
+        'lantai',
     ];
 
     /**

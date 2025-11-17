@@ -4,73 +4,69 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Room;
-use Illuminate\Http\Request;
+use Inertia\Inertia;
+// Pastikan ini ada
+use App\Http\Requests\StoreRoomRequest; 
 
 class RoomController extends Controller
 {
     /**
-     * Menampilkan daftar semua ruangan.
+     * Menampilkan daftar ruangan (Halaman Index).
      */
     public function index()
     {
-        $rooms = Room::latest()->paginate(10);
-        return view('rooms.index', compact('rooms'));
+        // PENYEBAB MASALAH ANDA ADA DI SINI
+        // Pastikan Anda mengirim 'name' dan 'capacity'
+        return Inertia::render('Rooms/Index', [
+            'rooms' => Room::all()->map(fn ($room) => [
+                'id' => $room->id,
+                'name' => $room->name,         // <-- DIPERBAIKI (dari 'nama')
+                'capacity' => $room->capacity,   // <-- DIPERBAIKI (dari 'kapasitas')
+                'facilities' => $room->facilities,
+                'gedung' => $room->gedung, // <-- TAMBAHKAN INI
+                'lantai' => $room->lantai, // <-- TAMBAHKAN INI
+            ]),
+        ]);
     }
 
     /**
-     * Menampilkan form untuk membuat ruangan baru.
+     * Menampilkan form untuk membuat ruangan baru (Halaman Create).
      */
     public function create()
     {
-        return view('rooms.create');
+        return Inertia::render('Rooms/Create');
     }
 
     /**
      * Menyimpan ruangan baru ke database.
+     * (Ini sudah berhasil untuk Anda)
      */
-    public function store(Request $request)
+    public function store(StoreRoomRequest $request) 
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'capacity' => 'required|integer|min:1',
-            'facilities' => 'nullable|string',
-        ]);
-
-        Room::create($request->all());
+        Room::create($request->validated());
 
         return redirect()->route('rooms.index')->with('success', 'Ruangan berhasil ditambahkan.');
     }
 
     /**
-     * Menampilkan detail satu ruangan (opsional).
-     */
-    public function show(Room $room)
-    {
-        return view('rooms.show', compact('room'));
-    }
-
-    /**
-     * Menampilkan form untuk mengedit ruangan.
+     * Menampilkan form untuk mengedit ruangan (Halaman Edit).
      */
     public function edit(Room $room)
     {
-        return view('rooms.edit', compact('room'));
+        // 'room' di sini adalah seluruh model, jadi ini sudah benar
+        return Inertia::render('Rooms/Edit', [
+            'room' => $room 
+        ]);
     }
 
     /**
      * Mengupdate data ruangan di database.
      */
-    public function update(Request $request, Room $room)
+    public function update(StoreRoomRequest $request, Room $room) 
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'capacity' => 'required|integer|min:1',
-            'facilities' => 'nullable|string',
-        ]);
+        $room->update($request->validated());
 
-        $room->update($request->all());
-
-        return redirect()->route('rooms.index')->with('success', 'Data ruangan berhasil diperbarui.');
+        return redirect()->route('rooms.index')->with('success', 'Ruangan berhasil diperbarui.');
     }
 
     /**
@@ -79,6 +75,7 @@ class RoomController extends Controller
     public function destroy(Room $room)
     {
         $room->delete();
+        
         return redirect()->route('rooms.index')->with('success', 'Ruangan berhasil dihapus.');
     }
 }

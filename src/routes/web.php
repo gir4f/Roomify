@@ -203,4 +203,21 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     })->name('reports.export');
 });
 
+Route::get('/debug', function () {
+    return [
+        'APP_KEY' => env('APP_KEY'),
+        'DB_CONNECTION' => env('DB_CONNECTION'),
+        'DB_HOST' => env('DB_HOST'),
+        'DB_STATUS' => function () {
+            try {
+                DB::connection()->getPdo();
+                return 'connected';
+            } catch (Exception $e) {
+                return $e->getMessage();
+            }
+        },
+    ];
+});
+
+
 require __DIR__.'/auth.php';

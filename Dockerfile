@@ -86,4 +86,5 @@ RUN php artisan optimize:clear
 
 EXPOSE 80
 
-CMD php artisan migrate:fresh --force && php artisan storage:link && php artisan db:seed --force && exit
+# KEMBALIKAN KE PERINTAH WEB SERVER NORMAL
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

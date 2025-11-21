@@ -158,19 +158,21 @@ const deleteRoom = (id) => {
                   Menampilkan {{ rooms.from }} - {{ rooms.to }} dari {{ rooms.total }} data
               </div>
               <div class="flex gap-1">
-                  <Component 
-                    :is="link.url ? Link : 'span'"
-                    v-for="(link, index) in rooms.links" 
-                    :key="index"
-                    :href="link.url"
-                    v-html="link.label"
-                    class="px-3 py-1 text-xs border rounded-md transition font-medium"
-                    :class="{
-                        'bg-gray-900 text-white border-gray-900': link.active,
-                        'bg-white text-gray-700 hover:bg-gray-50': !link.active && link.url,
-                        'text-gray-400 border-gray-200 cursor-not-allowed': !link.url
-                    }"
-                  />
+                <Component 
+                  :is="link.url ? Link : 'span'"
+                  v-for="(link, index) in rooms.links" 
+                  :key="index"
+                  :href="link.url"
+                  v-html="link.label"
+                  
+                  preserve-state
+                  preserve-scroll 
+                  
+                  class="px-3 py-1 text-xs border rounded-md transition font-medium"
+                  :class="{
+                      'bg-gray-900 text-white border-gray-900': link.active,
+                      'bg-white text-gray-700 hover:bg-gray-50': !link.active && link.url,
+                      'text-gray-400 border-gray-200 cursor-not-allowed': !link.url}"/>
               </div>
           </div>
 

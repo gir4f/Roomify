@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Admin Roomify',
             'email' => 'admin@roomify.com',
-            'password' => Hash::make('password'), // password
+            'password' => Hash::make('password'), // password: password
             'role' => 'admin',
         ]);
 
@@ -27,32 +27,105 @@ class DatabaseSeeder extends Seeder
         $student = User::create([
             'name' => 'Mahasiswa Teladan',
             'email' => 'mahasiswa@roomify.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('password'), // password: password
             'role' => 'user',
         ]);
 
-        // 3. Buat 5 User Dummy Tambahan
-        User::factory(5)->create();
-
-        // 4. Buat Data Ruangan (Rooms)
-        $roomsData = [
-            ['name' => 'Lab Komputer A', 'gedung' => 'Gedung Teknologi', 'lantai' => 2, 'capacity' => 40, 'facilities' => 'PC i7, AC, Proyektor'],
-            ['name' => 'Lab Komputer B', 'gedung' => 'Gedung Teknologi', 'lantai' => 2, 'capacity' => 40, 'facilities' => 'PC i5, AC, Smart TV'],
-            ['name' => 'Auditorium Utama', 'gedung' => 'Gedung Rektorat', 'lantai' => 1, 'capacity' => 300, 'facilities' => 'Sound System, Panggung, AC Central'],
-            ['name' => 'Ruang Kelas 101', 'gedung' => 'Gedung Bisnis', 'lantai' => 1, 'capacity' => 30, 'facilities' => 'AC, Whiteboard'],
-            ['name' => 'Ruang Kelas 102', 'gedung' => 'Gedung Bisnis', 'lantai' => 1, 'capacity' => 30, 'facilities' => 'AC, Whiteboard'],
-            ['name' => 'Ruang Rapat Dosen', 'gedung' => 'Gedung Rektorat', 'lantai' => 3, 'capacity' => 15, 'facilities' => 'Meja Bundar, TV, AC'],
-            ['name' => 'Studio Musik', 'gedung' => 'Gedung Seni', 'lantai' => 4, 'capacity' => 10, 'facilities' => 'Alat Musik, Peredam Suara'],
+        // 3. Tambahkan User Mahasiswa Baru (Egi, Diwa, Rafi, dll.)
+        $newStudentNames = [
+            'Egi', 'Diwa', 'Rafi', 'Siti', 'Budi', 'Joko', 'Rani', 'Lina', 'Yoga', 'Dian'
         ];
 
-        foreach ($roomsData as $room) {
+        foreach ($newStudentNames as $name) {
+            // Konversi nama menjadi huruf kecil untuk email
+            $email = strtolower($name) . '@roomify.com';
+
+            User::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make('password'), // password default: password
+                'role' => 'user', // Peran Mahasiswa
+            ]);
+        }
+        
+        // 4. Buat 5 User Dummy Tambahan (dari factory, jika masih dibutuhkan)
+        User::factory(5)->create();
+
+        // 5. Buat Data Ruangan (Rooms) BARU sesuai rincian sebelumnya
+        $newRoomsData = [];
+
+        // --- Rincian 1 & 2: SAW & Pascasarjana (Lantai 01-11, Ruang 01-08) ---
+        $buildings_basic = ['SAW', 'Pascasarjana'];
+        for ($gedung = 0; $gedung < count($buildings_basic); $gedung++) {
+            for ($lantai = 1; $lantai <= 11; $lantai++) {
+                for ($ruang = 1; $ruang <= 8; $ruang++) {
+                    $roomName = $buildings_basic[$gedung] . ' Lantai ' . str_pad($lantai, 2, '0', STR_PAD_LEFT) . ' Ruangan ' . str_pad($ruang, 2, '0', STR_PAD_LEFT);
+                    
+                    $newRoomsData[] = [
+                        'name' => $roomName, 
+                        'gedung' => $buildings_basic[$gedung], 
+                        'lantai' => $lantai, 
+                        'capacity' => 40, 
+                        'facilities' => 'AC, Proyektor, Whiteboard'
+                    ];
+                }
+            }
+        }
+
+        // --- Rincian 3, 4, & 5: D3 & D4 (Lantai 01-03) ---
+        $buildings_d = ['D3', 'D4'];
+        
+        for ($gedung = 0; $gedung < count($buildings_d); $gedung++) {
+            for ($lantai = 1; $lantai <= 3; $lantai++) {
+                $building_name = $buildings_d[$gedung];
+                $lantai_padded = str_pad($lantai, 2, '0', STR_PAD_LEFT);
+                
+                // Ruangan Teori (Teori A, B, C tergantung lantai)
+                $teori_char = match ($lantai) {
+                    1 => 'A',
+                    2 => 'B',
+                    3 => 'C',
+                    default => 'X',
+                };
+                
+                // Ruangan Teori 01 sampai 05
+                for ($ruang = 1; $ruang <= 5; $ruang++) {
+                    $roomName = $building_name . ' Lantai ' . $lantai_padded . ' Ruangan Teori ' . $teori_char . ' ' . str_pad($ruang, 2, '0', STR_PAD_LEFT);
+
+                    $newRoomsData[] = [
+                        'name' => $roomName, 
+                        'gedung' => $building_name, 
+                        'lantai' => $lantai, 
+                        'capacity' => 30, 
+                        'facilities' => 'Kursi Kuliah, Proyektor, AC'
+                    ];
+                }
+
+                // Ruangan Praktikum (01 sampai 08)
+                for ($ruang = 1; $ruang <= 8; $ruang++) {
+                    $roomName = $building_name . ' Lantai ' . $lantai_padded . ' Ruangan Praktikum ' . str_pad($ruang, 2, '0', STR_PAD_LEFT);
+                    
+                    $newRoomsData[] = [
+                        'name' => $roomName, 
+                        'gedung' => $building_name, 
+                        'lantai' => $lantai, 
+                        'capacity' => 40, 
+                        'facilities' => 'PC Lab, AC, Whiteboard'
+                    ];
+                }
+            }
+        }
+        
+        // Simpan semua data ruangan baru ke database
+        foreach ($newRoomsData as $room) {
             Room::create($room);
         }
 
-        // 5. Buat Data Booking Dummy (Agar Grafik Dashboard Terisi)
-        $rooms = Room::all();
+        // 6. Buat Data Booking Dummy (Agar Grafik Dashboard Terisi)
+        // Pastikan $rooms mengambil semua yang terbaru
+        $rooms = Room::all(); 
         $users = User::all();
-        $statuses = ['approved', 'pending', 'rejected', 'approved', 'approved']; // Lebih banyak approved biar grafik bagus
+        $statuses = ['approved', 'pending', 'rejected', 'approved', 'approved'];
 
         // Generate 50 booking acak di tahun ini
         for ($i = 0; $i < 50; $i++) {
@@ -71,14 +144,14 @@ class DatabaseSeeder extends Seeder
                 'start_time' => $start,
                 'end_time' => $end,
                 'status' => $statuses[array_rand($statuses)],
-                'created_at' => $start->subDays(rand(1, 5)), // Dibuat beberapa hari sebelum acara
+                'created_at' => $start->subDays(rand(1, 5)),
             ]);
         }
         
         // Tambahkan booking spesifik untuk user demo hari ini (Supaya muncul di Upcoming)
         Booking::create([
             'user_id' => $student->id,
-            'room_id' => $rooms->first()->id,
+            'room_id' => $rooms->random()->id, 
             'title' => 'Presentasi Project Akhir',
             'description' => 'Sidang skripsi tahap 1',
             'start_time' => now()->addDays(2)->setHour(10)->setMinute(0),

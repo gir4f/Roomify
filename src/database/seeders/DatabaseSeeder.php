@@ -7,6 +7,8 @@ use App\Models\Room;
 use App\Models\Booking;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon; // Pastikan Carbon diimpor jika digunakan di luar namespace
+// use Faker\Factory as Faker; // Opsional: Jika fake() tidak berfungsi, gunakan ini
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,43 +17,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Buat User Admin
+        // ==========================================
+        // 1. BUAT USER INTI (Admin & Mahasiswa)
+        // ==========================================
+        // Admin Utama (Wajib untuk login)
         User::create([
             'name' => 'Admin Roomify',
             'email' => 'admin@roomify.com',
-            'password' => Hash::make('password'), // password: password
+            'password' => Hash::make('password'), 
             'role' => 'admin',
         ]);
 
-        // 2. Buat User Biasa (Mahasiswa)
+        // User Biasa (Mahasiswa)
         $student = User::create([
             'name' => 'Mahasiswa Teladan',
             'email' => 'mahasiswa@roomify.com',
-            'password' => Hash::make('password'), // password: password
+            'password' => Hash::make('password'),
             'role' => 'user',
         ]);
 
-        // 3. Tambahkan User Mahasiswa Baru (Egi, Diwa, Rafi, dll.)
-        $newStudentNames = [
-            'Egi', 'Diwa', 'Rafi', 'Siti', 'Budi', 'Joko', 'Rani', 'Lina', 'Yoga', 'Dian'
-        ];
-
-        foreach ($newStudentNames as $name) {
-            // Konversi nama menjadi huruf kecil untuk email
-            $email = strtolower($name) . '@roomify.com';
-
-            User::create([
-                'name' => $name,
-                'email' => $email,
-                'password' => Hash::make('password'), // password default: password
-                'role' => 'user', // Peran Mahasiswa
-            ]);
-        }
+        // 3. User Dummy (Dihapus/dimatikan agar tidak crash UserFactory)
+        // User::factory(5)->create(); 
         
-        // 4. Buat 5 User Dummy Tambahan (dari factory, jika masih dibutuhkan)
-        User::factory(5)->create();
-
-        // 5. Buat Data Ruangan (Rooms) BARU sesuai rincian sebelumnya
+        // ==========================================
+        // 2. BUAT DATA RUANGAN (Rooms)
+        // ==========================================
         $newRoomsData = [];
 
         // --- Rincian 1 & 2: SAW & Pascasarjana (Lantai 01-11, Ruang 01-08) ---
@@ -66,7 +56,8 @@ class DatabaseSeeder extends Seeder
                         'gedung' => $buildings_basic[$gedung], 
                         'lantai' => $lantai, 
                         'capacity' => 40, 
-                        'facilities' => 'AC, Proyektor, Whiteboard'
+                        'facilities' => 'AC, Proyektor, Whiteboard',
+                        'status' => 'available' // Pastikan status di-set
                     ];
                 }
             }
@@ -80,7 +71,7 @@ class DatabaseSeeder extends Seeder
                 $building_name = $buildings_d[$gedung];
                 $lantai_padded = str_pad($lantai, 2, '0', STR_PAD_LEFT);
                 
-                // Ruangan Teori (Teori A, B, C tergantung lantai)
+                // Ruangan Teori
                 $teori_char = match ($lantai) {
                     1 => 'A',
                     2 => 'B',
@@ -97,7 +88,8 @@ class DatabaseSeeder extends Seeder
                         'gedung' => $building_name, 
                         'lantai' => $lantai, 
                         'capacity' => 30, 
-                        'facilities' => 'Kursi Kuliah, Proyektor, AC'
+                        'facilities' => 'Kursi Kuliah, Proyektor, AC',
+                        'status' => 'available'
                     ];
                 }
 
@@ -110,20 +102,23 @@ class DatabaseSeeder extends Seeder
                         'gedung' => $building_name, 
                         'lantai' => $lantai, 
                         'capacity' => 40, 
-                        'facilities' => 'PC Lab, AC, Whiteboard'
+                        'facilities' => 'PC Lab, AC, Whiteboard',
+                        'status' => 'available'
                     ];
                 }
             }
         }
         
         // Simpan semua data ruangan baru ke database
+        // 🔥 Ini akan menjalankan Room::create yang membutuhkan $fillable di Room Model
         foreach ($newRoomsData as $room) {
             Room::create($room);
         }
 
-        // 6. Buat Data Booking Dummy (Agar Grafik Dashboard Terisi)
-        // Pastikan $rooms mengambil semua yang terbaru
-        $rooms = Room::all(); 
+        // ==========================================
+        // 3. BUAT DATA BOOKING DUMMY
+        // ==========================================
+        $rooms = Room::all(); // Ambil semua ruangan yang baru dibuat
         $users = User::all();
         $statuses = ['approved', 'pending', 'rejected', 'approved', 'approved'];
 
@@ -133,13 +128,14 @@ class DatabaseSeeder extends Seeder
             $randomDay = rand(1, 28);
             $randomHour = rand(8, 16);
             
+            // Menggunakan Carbon\Carbon untuk membuat tanggal dan waktu
             $start = \Carbon\Carbon::create(date('Y'), $randomMonth, $randomDay, $randomHour, 0, 0);
             $end = (clone $start)->addHours(rand(1, 3));
 
             Booking::create([
                 'user_id' => $users->random()->id,
                 'room_id' => $rooms->random()->id,
-                'title' => 'Kegiatan ' . fake()->words(2, true),
+                'title' => 'Kegiatan ' . fake()->words(2, true), // Menggunakan fake()
                 'description' => fake()->sentence(),
                 'start_time' => $start,
                 'end_time' => $end,
@@ -148,7 +144,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         
-        // Tambahkan booking spesifik untuk user demo hari ini (Supaya muncul di Upcoming)
+        // Tambahkan booking spesifik untuk user demo hari ini
         Booking::create([
             'user_id' => $student->id,
             'room_id' => $rooms->random()->id, 
